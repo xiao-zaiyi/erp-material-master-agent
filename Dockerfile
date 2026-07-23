@@ -1,17 +1,24 @@
 FROM python:3.12-slim-bullseye
 
+ARG DEBIAN_MIRROR=https://mirrors.aliyun.com
+
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates curl gnupg unixodbc-dev \
-    && curl -fsSL https://packages.microsoft.com/keys/microsoft.asc \
-        | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg \
-    && echo "deb [signed-by=/usr/share/keyrings/microsoft-prod.gpg] https://packages.microsoft.com/debian/11/prod bullseye main" \
-        > /etc/apt/sources.list.d/microsoft-prod.list \
+RUN printf '%s\n' \
+        "deb ${DEBIAN_MIRROR}/debian bullseye main" \
+        "deb ${DEBIAN_MIRROR}/debian bullseye-updates main" \
+        "deb ${DEBIAN_MIRROR}/debian-security bullseye-security main" \
+        > /etc/apt/sources.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl unixodbc-dev \
+    && curl -fsSLo /tmp/packages-microsoft-prod.deb \
+        https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb \
+    && dpkg -i /tmp/packages-microsoft-prod.deb \
+    && rm -f /tmp/packages-microsoft-prod.deb \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y --no-install-recommends msodbcsql18 \
     && rm -rf /var/lib/apt/lists/*
