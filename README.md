@@ -20,11 +20,13 @@
 cp .env.example .env
 ```
 
-启动 Agent 和 PostgreSQL 17 + pgvector：
+`.env.example` 默认同时启动 Agent 和 PostgreSQL 17 + pgvector：
 
 ```bash
 docker compose up -d --build
 ```
+
+使用外部 PostgreSQL 时，把 `MATERIAL_POSTGRES_URL` 改为实际地址，并把 `COMPOSE_PROFILES` 留空。
 
 打开：
 
@@ -67,7 +69,8 @@ python main.py
 | `MATERIAL_EMBEDDING_DIMENSION` | 向量维度 |
 | `MATERIAL_SOURCE_TYPE` | ERP 数据源，当前支持 `ncc` |
 | `MATERIAL_SOURCE_URL` | ERP 数据库连接地址 |
-| `MATERIAL_POSTGRES_URL` | 本地启动时使用的 PostgreSQL 连接地址 |
+| `MATERIAL_POSTGRES_URL` | PostgreSQL 完整连接地址 |
+| `COMPOSE_PROFILES` | `postgres` 表示部署内置 PostgreSQL；留空表示使用外部 PostgreSQL |
 | `POSTGRES_DB` | Docker PostgreSQL 数据库名 |
 | `POSTGRES_USER` | Docker PostgreSQL 用户 |
 | `POSTGRES_PASSWORD` | Docker PostgreSQL 密码 |

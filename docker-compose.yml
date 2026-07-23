@@ -1,6 +1,8 @@
 services:
   postgres:
     image: pgvector/pgvector:pg17
+    profiles:
+      - postgres
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -26,11 +28,6 @@ services:
     container_name: erp-material-master-agent
     env_file:
       - .env
-    environment:
-      MATERIAL_POSTGRES_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
     ports:
       - "8000:8000"
     extra_hosts:
