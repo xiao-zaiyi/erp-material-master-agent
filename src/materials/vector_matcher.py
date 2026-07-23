@@ -49,11 +49,11 @@ class VectorMaterialMatcher:
             )
         return candidates
 
-    def get_by_code(self, code: str) -> MaterialRecord | None:
-        target = code.strip()
-        if not target:
+    def get_by_id(self, material_id: str) -> MaterialRecord | None:
+        material_id = material_id.strip()
+        if not material_id:
             return None
-        documents = self.vector_store.get_by_ids([target])
+        documents = self.vector_store.get_by_ids([material_id])
         if not documents:
             return None
         return _material_from_metadata(documents[0].metadata)

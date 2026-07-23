@@ -34,8 +34,8 @@ class MaterialService:
         items = self.matcher.search(query)
         return SearchResponse(items=items, index_version=self._index_version())
 
-    def get_by_code(self, code: str) -> MaterialRecord | None:
-        return self.matcher.get_by_code(code)
+    def get_by_id(self, material_id: str) -> MaterialRecord | None:
+        return self.matcher.get_by_id(material_id)
 
     def validate(self, query: MaterialQuery) -> ValidateResponse:
         state = self.validation_graph.invoke({"query": query})

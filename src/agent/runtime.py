@@ -17,11 +17,14 @@ logger = logging.getLogger("material_agent.chat_stream")
 
 def build_material_tools(service: MaterialService) -> list[Any]:
     @tool
-    def get_material_by_code(code: str) -> str:
-        """按完整物料代码精确查询单个物料信息。用户提供明确物料代码时优先使用本工具，不做向量相似检索。"""
-        material = service.get_by_code(code)
+    def get_material_by_id(material_id: str) -> str:
+        """按物料 ID 精确查询。物料 ID 就是完整物料编码；本工具直接查询索引 ID，不执行向量相似检索。"""
+        material = service.get_by_id(material_id)
         if material is None:
-            return json.dumps({"found": False, "code": code.strip(), "message": "未找到该物料代码"}, ensure_ascii=False)
+            return json.dumps(
+                {"found": False, "material_id": material_id.strip(), "message": "未找到该物料"},
+                ensure_ascii=False,
+            )
         return json.dumps({"found": True, "material": material.model_dump()}, ensure_ascii=False, default=str)
 
     @tool
@@ -36,7 +39,7 @@ def build_material_tools(service: MaterialService) -> list[Any]:
         result = service.validate(MaterialQuery(name=name, specification=specification))
         return result.model_dump_json(ensure_ascii=False)
 
-    return [get_material_by_code, search_materials, validate_new_material]
+    return [get_material_by_id, search_materials, validate_new_material]
 
 
 def build_material_agent(model: Any, service: MaterialService):
@@ -46,7 +49,7 @@ def build_material_agent(model: Any, service: MaterialService):
         tools=build_material_tools(service),
         system_prompt=(
             "你是 ERP 物料主数据助手。你必须先调用合适的物料工具，再回答用户。"
-            "用户提供明确物料代码并查询对应信息时，必须调用 get_material_by_code；"
+            "用户提供明确物料代码并查询对应信息时，必须把该编码作为 material_id 调用 get_material_by_id；"
             "用户不知道编码、想按名称或规格查已有编码时调用 search_materials；用户想新建或判断重复时调用 validate_new_material。"
             "检索前必须根据你的知识识别物料的别名、俗称和简称，并将原名称与别名用顿号拼接后传给 search_materials，"
             "例如用户查询番茄时传入“番茄、西红柿、蕃茄”。形态词（如苗、种子、粉、酱）不同不能直接判定为同一物料。"
