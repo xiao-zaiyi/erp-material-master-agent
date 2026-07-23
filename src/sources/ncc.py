@@ -16,6 +16,7 @@ MATERIAL_QUERY = """
     """
 
 MATERIAL_CHANGED_QUERY = MATERIAL_QUERY + " WHERE modifiedtime >= ? OR modifiedtime IS NULL"
+MATERIAL_BY_ID_QUERY = MATERIAL_QUERY + " WHERE code = ?"
 MATERIAL_CODES_QUERY = "SELECT code FROM bd_material_v"
 
 
@@ -52,6 +53,17 @@ class NccMaterialSource:
                 cursor.execute(MATERIAL_CHANGED_QUERY, modified_since)
             columns = [column[0] for column in cursor.description]
             return [self._to_record(dict(zip(columns, row, strict=True))) for row in cursor.fetchall()]
+
+    def get_by_id(self, material_id: str) -> MaterialRecord | None:
+        material_id = material_id.strip()
+        if not material_id:
+            return None
+        with pyodbc.connect(self._connection_string, timeout=10) as connection:
+            cursor = connection.cursor()
+            cursor.execute(MATERIAL_BY_ID_QUERY, material_id)
+            columns = [column[0] for column in cursor.description]
+            row = cursor.fetchone()
+            return self._to_record(dict(zip(columns, row, strict=True))) if row else None
 
     def fetch_codes(self) -> list[str]:
         with pyodbc.connect(self._connection_string, timeout=10) as connection:

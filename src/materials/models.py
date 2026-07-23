@@ -53,6 +53,11 @@ class Candidate(BaseModel):
     score: float = Field(ge=0, le=1)
     reason: str
 
+    @computed_field
+    @property
+    def confidence_label(self) -> str:
+        return {"high": "高", "medium": "中", "low": "低"}[self.confidence]
+
 
 class Guidance(BaseModel):
     level: Literal["info", "warning"]
@@ -76,6 +81,11 @@ class ValidateResponse(BaseModel):
     candidates: list[Candidate]
     guidance: list[Guidance]
     index_version: str
+
+    @computed_field
+    @property
+    def confidence_label(self) -> str:
+        return {"high": "高", "medium": "中", "low": "低"}[self.confidence]
 
 
 class FeedbackRequest(BaseModel):

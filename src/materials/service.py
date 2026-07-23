@@ -17,6 +17,7 @@ class MaterialService:
         vector_store=None,
         feedback_repository: FeedbackRepository | None = None,
     ):
+        self.source = source
         if vector_store is not None:
             self.matcher = VectorMaterialMatcher(vector_store)
             self._index_version = self.matcher.index_version
@@ -35,7 +36,9 @@ class MaterialService:
         return SearchResponse(items=items, index_version=self._index_version())
 
     def get_by_id(self, material_id: str) -> MaterialRecord | None:
-        return self.matcher.get_by_id(material_id)
+        if self.source is None:
+            raise RuntimeError("未配置 ERP 物料数据源")
+        return self.source.get_by_id(material_id)
 
     def validate(self, query: MaterialQuery) -> ValidateResponse:
         state = self.validation_graph.invoke({"query": query})

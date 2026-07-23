@@ -106,9 +106,11 @@ def _build_configured_service() -> MaterialService:
     from indexing.embedding import E5Embeddings
     from indexing.vector_store import create_vector_store
     from materials.feedback import PostgresFeedbackRepository
+    from sources.factory import create_material_source
 
     settings = Settings()
     required = {
+        "MATERIAL_SOURCE_URL": settings.source_url,
         "MATERIAL_POSTGRES_URL": settings.postgres_url,
         "MATERIAL_EMBEDDING_API_URL": settings.embedding_api_url,
         "MATERIAL_EMBEDDING_MODEL": settings.embedding_model,
@@ -121,9 +123,10 @@ def _build_configured_service() -> MaterialService:
         model=settings.embedding_model,
         api_key=settings.embedding_api_key,
     )
+    source = create_material_source(settings)
     vector_store = create_vector_store(settings, embeddings)
     feedback_repository = PostgresFeedbackRepository(settings.postgres_url)
-    return MaterialService(vector_store=vector_store, feedback_repository=feedback_repository)
+    return MaterialService(source=source, vector_store=vector_store, feedback_repository=feedback_repository)
 
 
 def _build_configured_agent(service: MaterialService):

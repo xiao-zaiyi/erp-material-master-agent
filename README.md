@@ -24,6 +24,8 @@ cp .env.example .env
 
 ```bash
 docker compose up -d --build
+
+docker compose up -d --build --force-recreate material-agent
 ```
 
 使用外部 PostgreSQL 时，把 `MATERIAL_POSTGRES_URL` 改为实际地址，并把 `COMPOSE_PROFILES` 留空。
@@ -108,9 +110,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/agent/chat \
 
 ## 接入其他 ERP
 
-新数据源需实现 `MaterialSource` 的两个方法：
+新数据源需实现 `MaterialSource` 的三个方法：
 
 ```python
+def get_by_id(material_id): ...
 def fetch_materials(modified_since=None): ...
 def fetch_codes(): ...
 ```

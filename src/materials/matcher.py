@@ -10,15 +10,6 @@ class MaterialMatcher:
     def __init__(self, materials: list[MaterialRecord]):
         self.materials = materials
 
-    def get_by_id(self, material_id: str) -> MaterialRecord | None:
-        material_id = material_id.strip().casefold()
-        if not material_id:
-            return None
-        return next(
-            (material for material in self.materials if material.code.strip().casefold() == material_id),
-            None,
-        )
-
     def search(self, query: MaterialQuery, limit: int = 20) -> list[Candidate]:
         query_name = normalize_text(query.name)
         expanded_names = split_material_names(query.name)

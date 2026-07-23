@@ -49,15 +49,6 @@ class VectorMaterialMatcher:
             )
         return candidates
 
-    def get_by_id(self, material_id: str) -> MaterialRecord | None:
-        material_id = material_id.strip()
-        if not material_id:
-            return None
-        documents = self.vector_store.get_by_ids([material_id])
-        if not documents:
-            return None
-        return _material_from_metadata(documents[0].metadata)
-
     def index_version(self) -> str:
         return self._index_version
 

@@ -18,14 +18,30 @@ logger = logging.getLogger("material_agent.chat_stream")
 def build_material_tools(service: MaterialService) -> list[Any]:
     @tool
     def get_material_by_id(material_id: str) -> str:
-        """按物料 ID 精确查询。物料 ID 就是完整物料编码；本工具直接查询索引 ID，不执行向量相似检索。"""
+        """按物料 ID 精确查询。物料 ID 就是完整物料编码；本工具直接查询 ERP 只读数据源，不执行向量相似检索。"""
         material = service.get_by_id(material_id)
         if material is None:
             return json.dumps(
-                {"found": False, "material_id": material_id.strip(), "message": "未找到该物料"},
+                {
+                    "found": False,
+                    "material_id": material_id.strip(),
+                    "confidence": "low",
+                    "confidence_label": "低",
+                    "message": "未找到该物料",
+                },
                 ensure_ascii=False,
             )
-        return json.dumps({"found": True, "material": material.model_dump()}, ensure_ascii=False, default=str)
+        return json.dumps(
+            {
+                "found": True,
+                "confidence": "high",
+                "confidence_label": "高",
+                "reason": "物料编码精确匹配",
+                "material": material.model_dump(),
+            },
+            ensure_ascii=False,
+            default=str,
+        )
 
     @tool
     def search_materials(name: str = "", specification: str = "") -> str:
@@ -53,7 +69,7 @@ def build_material_agent(model: Any, service: MaterialService):
             "用户不知道编码、想按名称或规格查已有编码时调用 search_materials；用户想新建或判断重复时调用 validate_new_material。"
             "检索前必须根据你的知识识别物料的别名、俗称和简称，并将原名称与别名用顿号拼接后传给 search_materials，"
             "例如用户查询番茄时传入“番茄、西红柿、蕃茄”。形态词（如苗、种子、粉、酱）不同不能直接判定为同一物料。"
-            "不要编造物料编码、规格或行业标准。必须说明候选 code、名称、规格、启用状态和判断依据。"
+            "不要编造物料编码、规格或行业标准。必须说明候选 code、名称、规格、启用状态、置信度 confidence_label 和判断依据。"
             "启用状态必须使用工具返回的 status 和 state_label，禁止猜测或使用特定 ERP 的原始状态码。"
             "结论只能使用：已有可用物料、已有待启用物料、疑似重复，人工确认、未发现重复，可申请新建。"
             "停用物料只能提示人工确认，不能建议自动恢复。"
